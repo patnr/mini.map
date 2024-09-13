@@ -1540,6 +1540,25 @@ H.update_map_integrations = function()
   local ns_id = H.ns_id.integrations
   vim.api.nvim_buf_clear_namespace(buf_id, ns_id, 0, -1)
 
+  -- Emarks integration
+  -- TODO: move this to a separate function
+  local col = H.cache.scrollbar_data.offset - 1
+  local has_emarks, emarks_core = pcall(require, 'emarks.core')
+  if not has_emarks or emarks_core == nil then return {} end
+  local marks = emarks_core.marks_for_storage()
+  -- for ln, text in pairs({[1544]='a', [1451]='b'}) do
+  for label, mark in pairs(marks) do
+    local bufname, pos = mark[1], mark[2]
+    local ln = pos[1]
+      local map_line = H.sourceline_to_mapline(ln)
+      local extmark_opts = {
+        virt_text = { { label, 'MiniMapSymbolCount' } },
+        virt_text_pos = 'overlay',
+        hl_mode = 'blend',
+      }
+      H.set_extmark_safely(buf_id, ns_id, map_line - 1, col, extmark_opts)
+  end
+
   -- Do nothing more in case of pure scrollbar
   -- This is after removing "more" signs to allow switching to pure scrollbar
   -- after such were already visible
