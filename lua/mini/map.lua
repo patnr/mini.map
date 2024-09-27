@@ -1530,18 +1530,11 @@ H.update_map_scrollbar = function()
   end
 end
 
-H.update_map_integrations = function()
-  if not H.is_window_open() then return end
 
-  local buf_id = MiniMap.current.buf_data.map
-  local integrations = MiniMap.current.opts.integrations or {}
-
-  -- Remove previous highlights and signs
-  local ns_id = H.ns_id.integrations
-  vim.api.nvim_buf_clear_namespace(buf_id, ns_id, 0, -1)
-
-  -- Emarks integration
-  -- TODO: move this to a separate function
+H.emarks_integration = function (buf_id, ns_id)
+  -- AFAICT there's no way to make this an official "integration"
+  -- because they use `add_line_hl` whereas the code below
+  -- uses `set_extmark_safely` the same way as the "count"
   local col = H.cache.scrollbar_data.offset - 1
   local has_emarks, emarks_core = pcall(require, 'emarks.core')
   if not has_emarks or emarks_core == nil then return {} end
@@ -1559,11 +1552,25 @@ H.update_map_integrations = function()
       H.set_extmark_safely(buf_id, ns_id, map_line - 1, col, extmark_opts)
     end
   end
+end
+
+
+H.update_map_integrations = function()
+  if not H.is_window_open() then return end
+
+  local buf_id = MiniMap.current.buf_data.map
+  local integrations = MiniMap.current.opts.integrations or {}
+
+  -- Remove previous highlights and signs
+  local ns_id = H.ns_id.integrations
+  vim.api.nvim_buf_clear_namespace(buf_id, ns_id, 0, -1)
 
   -- Do nothing more in case of pure scrollbar
   -- This is after removing "more" signs to allow switching to pure scrollbar
   -- after such were already visible
   if H.is_pure_scrollbar() then return end
+
+  H.emarks_integration(buf_id, ns_id)
 
   -- Add line highlights. Use latest one for every map line.
   local line_counts = {}
