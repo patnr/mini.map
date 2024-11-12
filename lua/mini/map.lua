@@ -1360,19 +1360,22 @@ H.normalize_window_options = function(win_opts, full)
 
   local has_tabline = vim.o.showtabline == 2 or (vim.o.showtabline == 1 and #vim.api.nvim_list_tabpages() > 1)
   local has_statusline = vim.o.laststatus > 0
-  local anchor, col = 'NE', vim.o.columns
+  -- local anchor, col = 'NE', vim.o.columns
+  local anchor, col = 'NE', vim.api.nvim_win_get_width(0)
   if win_opts.side == 'left' then
     anchor, col = 'NW', 0
   end
 
   local res = {
-    relative = 'editor',
+    relative = 'win',
     anchor = anchor,
-    row = has_tabline and 1 or 0,
+    -- row = has_tabline and 1 or 0,
+    row = 0,
     col = col,
     width = win_opts.width,
     -- Can be updated at `VimResized` event
-    height = vim.o.lines - vim.o.cmdheight - (has_tabline and 1 or 0) - (has_statusline and 1 or 0),
+    -- height = vim.o.lines - vim.o.cmdheight - (has_tabline and 1 or 0) - (has_statusline and 1 or 0),
+    height = vim.api.nvim_win_get_height(0),
     focusable = win_opts.focusable,
     zindex = win_opts.zindex,
   }
