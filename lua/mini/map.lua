@@ -892,6 +892,46 @@ MiniMap.gen_integration.diff = function(hl_groups)
   end
 end
 
+--- My implementation of `.diff()` because `mini.diff` applies to git diffs
+--- (at least I could not get it to work with general diffs)
+--- and would disable gitsigns (which I slightly prefer).
+MiniMap.gen_integration.vimdiff = function()
+	local augroup = vim.api.nvim_create_augroup("MiniMapVimDiff", {})
+	vim.api.nvim_create_autocmd(
+		"User",
+		{ group = augroup, pattern = "GitSignsUpdate", callback = H.on_integration_update, desc = "On GitSignsUpdate" }
+	)
+
+	-- Use foreground, stand-out colors
+	local hi_map = {
+		DiffAdd = "Added",
+		DiffDelete = "Removed",
+    -- There's no point distinguishing these for the purpose of code maps
+		DiffChange = "Changed",
+		DiffText = "Changed",
+	}
+
+	return function()
+		local res = {}
+		local bufnr = MiniMap.current.buf_data.source
+
+		if not vim.wo.diff then
+			return {}
+		end
+
+		for iLine = 1, vim.api.nvim_buf_line_count(bufnr) do
+      --- Use `:echo synIDattr(diff_hlID('.', 1), 'name')` to try out
+			local hi = vim.fn["synIDattr"](vim.fn["diff_hlID"](iLine, 1), "name")
+			if hi ~= nil then
+				hi = hi_map[hi] or hi
+				table.insert(res, { line = iLine, hl_group = hi })
+			end
+		end
+		return res
+	end
+end
+
+
 --- Hunks from 'lewis6991/gitsigns.nvim'
 ---
 --- Highlight lines which have non-trivial Git status.
@@ -931,6 +971,8 @@ MiniMap.gen_integration.gitsigns = function(hl_groups)
     return H.hunks_to_line_hl(diff_hunks, hl_groups)
   end
 end
+
+
 
 -- Helper data ================================================================
 -- Module default config
