@@ -1583,7 +1583,7 @@ H.emarks_integration = function (buf_id, ns_id)
   local col = H.cache.scrollbar_data.offset - 1
   local has_emarks, emarks_core = pcall(require, 'emarks.core')
   if not has_emarks or emarks_core == nil then return {} end
-  local marks = emarks_core.marks_for_storage()
+  local marks = emarks_core.extmark_locations()
   for label, mark in pairs(marks) do
     local bufname, pos = mark[1], mark[2]
     if bufname == vim.fn.bufname() then
