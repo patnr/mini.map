@@ -1460,7 +1460,11 @@ H.create_map_buffer = function()
   vim.keymap.set('n', '<Esc>', '<Cmd>lua MiniMap.toggle_focus(true)<CR>', { buffer = buf_id })
 
   -- Make buffer local autocommands
-  vim.api.nvim_create_autocmd('BufEnter', { buffer = buf_id, callback = H.on_map_enter, desc = 'On map enter' })
+  vim.api.nvim_create_autocmd('BufEnter', { buffer = buf_id, callback = function ()
+    H.on_map_enter()
+    H.track_map_cursor() -- added by me
+    -- H.update_map_scrollbar() -- TODO: does not work!!!
+  end, desc = 'On map enter' })
   vim.api.nvim_create_autocmd(
     'CursorMoved',
     { buffer = buf_id, callback = H.track_map_cursor, desc = 'Track map cursor' }
